@@ -38,10 +38,9 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
     });
   }
 
-  void _restart() {
+  void _retryCurrent() {
     setState(() {
-      _currentIndex = 0;
-      _selectedByIndex.clear();
+      _selectedByIndex.remove(_currentIndex);
     });
   }
 
@@ -104,7 +103,12 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
                       ),
                     ),
                     const Spacer(),
-                    if (isLast)
+                    if (answered)
+                      TextButton(
+                        onPressed: _retryCurrent,
+                        child: const Text('다시풀기'),
+                      )
+                    else if (isLast)
                       Text('마지막', style: theme.textTheme.labelLarge),
                   ],
                 ),
@@ -181,7 +185,7 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('틈틈봇 퀴즈'),
+            title: const Text('퀴즈 앱'),
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),
           body: body,
