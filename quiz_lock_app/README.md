@@ -1,16 +1,28 @@
-# quiz_lock_app
+## 공부용 퀴즈 앱
 
-A new Flutter project.
+**공부 내용을 틈틈이 체크하면서 넘겨볼 수 있는 간단한 퀴즈 앱**입니다.  
+문제를 하나씩 풀면서 개념을 다시 확인하고, 바로 정답/오답과 해설을 볼 수 있습니다.
 
-## Getting Started
+### 주요 기능
 
-This project is a starting point for a Flutter application.
+- **문제 단위 학습**
+  - 한 번에 한 문제씩만 보여 줍니다.
+  - 보기 중 하나를 고르면 **즉시 정답/오답**과 **해설(있을 경우)**이 표시됩니다.
+  - **다시풀기 버튼**으로 해당 문제만 리셋해서 다시 시도할 수 있습니다.
 
-A few resources to get you started if this is your first Flutter project:
+- **이전 / 다음 네비게이션**
+  - 화면 하단의 **이전 / 다음 버튼**으로 앞/뒤 문제로 이동합니다.
+  - 첫 문제에서는 `이전`이 비활성화되고, 마지막 문제에서는 `다음`이 비활성화됩니다.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **문제 데이터 분리**
+  - 문제 내용은 `assets/quizzes/sample_quiz.json` 에 JSON 형식으로 관리합니다.
+  - JSON에 문제를 추가/수정하면 앱 코드를 건드리지 않고도 퀴즈를 확장할 수 있습니다.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 앞으로 추가 예정
+
+- **잠금 해제용 버튼 / 흐름**
+  - 나중에 특정 조건(예: 일정 개수 이상 정답, 시간 조건 등)을 만족하면
+    **잠금 해제 버튼**을 통해 다음 단계로 넘어가는 기능을 붙일 예정입니다.
+
+이 저장소는 Flutter 기반의 학습용 퀴즈 앱 예제로,  
+문제 관리와 화면 구성을 분리한 구조를 연습하기에 적합합니다.
