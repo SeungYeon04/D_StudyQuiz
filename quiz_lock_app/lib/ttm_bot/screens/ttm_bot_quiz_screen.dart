@@ -15,61 +15,34 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
   final _loader = const QuizAssetLoader();
 
   int _currentIndex = 0;
-  int? _selectedIndex;
-  bool _answered = false;
-  int _correctCount = 0;
+  final Map<int, int> _selectedByIndex = <int, int>{};
 
   void _selectOption(int index, QuizQuestion q) {
-    if (_answered) return;
+    if (_selectedByIndex.containsKey(_currentIndex)) return;
     setState(() {
-      _selectedIndex = index;
-      _answered = true;
-      if (index == q.answerIndex) _correctCount++;
+      _selectedByIndex[_currentIndex] = index;
     });
   }
 
   void _next(List<QuizQuestion> questions) {
-    if (_currentIndex >= questions.length - 1) {
-      _showDoneDialog(questions.length);
-      return;
-    }
+    if (_currentIndex >= questions.length - 1) return;
     setState(() {
       _currentIndex++;
-      _selectedIndex = null;
-      _answered = false;
+    });
+  }
+
+  void _prev() {
+    if (_currentIndex <= 0) return;
+    setState(() {
+      _currentIndex--;
     });
   }
 
   void _restart() {
     setState(() {
       _currentIndex = 0;
-      _selectedIndex = null;
-      _answered = false;
-      _correctCount = 0;
+      _selectedByIndex.clear();
     });
-  }
-
-  Future<void> _showDoneDialog(int total) async {
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('퀴즈 끝!'),
-        content: Text('점수: $_correctCount / $total'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _restart();
-            },
-            child: const Text('다시하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('닫기'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -107,8 +80,10 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
           } else {
             final q = questions[_currentIndex];
             final progressText = '${_currentIndex + 1} / ${questions.length}';
-            final answered = _answered;
-            final correct = (_selectedIndex == q.answerIndex);
+            final selectedIndex = _selectedByIndex[_currentIndex];
+            final answered = selectedIndex != null;
+            final correct = answered && (selectedIndex == q.answerIndex);
+            final isLast = _currentIndex == questions.length - 1;
 
             body = ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -129,10 +104,8 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      '정답 ${_correctCount}',
-                      style: theme.textTheme.labelLarge,
-                    ),
+                    if (isLast)
+                      Text('마지막', style: theme.textTheme.labelLarge),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -191,13 +164,13 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
                 Row(
                   children: [
                     OutlinedButton(
-                      onPressed: _restart,
-                      child: const Text('처음부터'),
+                      onPressed: _currentIndex > 0 ? _prev : null,
+                      child: const Text('이전'),
                     ),
                     const Spacer(),
                     FilledButton(
-                      onPressed: answered ? () => _next(questions) : null,
-                      child: Text(_currentIndex == questions.length - 1 ? '결과 보기' : '다음'),
+                      onPressed: !isLast ? () => _next(questions) : null,
+                      child: const Text('다음'),
                     ),
                   ],
                 ),
@@ -218,13 +191,16 @@ class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
   }
 
   QuizOptionState _optionStateFor(int optionIndex, QuizQuestion q) {
-    if (!_answered) {
-      if (_selectedIndex == optionIndex) return QuizOptionState.selected;
+    final selectedIndex = _selectedByIndex[_currentIndex];
+    final answered = selectedIndex != null;
+
+    if (!answered) {
+      if (selectedIndex == optionIndex) return QuizOptionState.selected;
       return QuizOptionState.idle;
     }
 
     if (optionIndex == q.answerIndex) return QuizOptionState.correct;
-    if (_selectedIndex == optionIndex && optionIndex != q.answerIndex) return QuizOptionState.wrong;
+    if (selectedIndex == optionIndex && optionIndex != q.answerIndex) return QuizOptionState.wrong;
     return QuizOptionState.disabled;
   }
 }
