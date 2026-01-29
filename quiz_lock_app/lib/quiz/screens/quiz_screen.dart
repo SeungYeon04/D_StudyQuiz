@@ -15,37 +15,35 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> {
   final _loader = const QuizAssetLoader();
+  /// 다시풀기/입력/다음/이전 시 setState 대신 이걸만 갱신 → 본문만 다시 그림, Scaffold·AppBar는 유지
+  final ValueNotifier<int> _bodyVersion = ValueNotifier(0);
 
   int _currentIndex = 0;
-  final Map<int, int> _selectedByIndex = <int, int>{}; // 객관식용
-  final Map<int, String> _submittedAnswers = <int, String>{}; // 빈칸 채우기 제출된 답변만
+  final Map<int, int> _selectedByIndex = <int, int>{};
+  final Map<int, String> _submittedAnswers = <int, String>{};
 
   void _selectOption(int index, QuizQuestion q) {
     if (_selectedByIndex.containsKey(_currentIndex)) return;
-    setState(() {
-      _selectedByIndex[_currentIndex] = index;
-    });
+    _selectedByIndex[_currentIndex] = index;
+    _bodyVersion.value++;
   }
 
   void _next(List<QuizQuestion> questions) {
     if (_currentIndex >= questions.length - 1) return;
-    setState(() {
-      _currentIndex++;
-    });
+    _currentIndex++;
+    _bodyVersion.value++;
   }
 
   void _prev() {
     if (_currentIndex <= 0) return;
-    setState(() {
-      _currentIndex--;
-    });
+    _currentIndex--;
+    _bodyVersion.value++;
   }
 
   void _retryCurrent() {
-    setState(() {
-      _selectedByIndex.remove(_currentIndex);
-      _submittedAnswers.remove(_currentIndex);
-    });
+    _selectedByIndex.remove(_currentIndex);
+    _submittedAnswers.remove(_currentIndex);
+    _bodyVersion.value++;
   }
 
   bool _isAnswered(QuizQuestion q) {
@@ -76,9 +74,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _submitFillBlank(String answer) {
     if (answer.trim().isEmpty || _submittedAnswers.containsKey(_currentIndex)) return;
-    setState(() {
-      _submittedAnswers[_currentIndex] = answer.trim();
-    });
+    _submittedAnswers[_currentIndex] = answer.trim();
+    _bodyVersion.value++;
+  }
+
+  @override
+  void dispose() {
+    _bodyVersion.dispose();
+    super.dispose();
   }
 
   @override
@@ -87,7 +90,6 @@ class _QuizScreenState extends State<QuizScreen> {
       future: _loader.loadQuestions('assets/quizzes/sample_quiz.json'),
       builder: (context, snapshot) {
         final theme = Theme.of(context);
-        final colorScheme = theme.colorScheme;
 
         Widget body;
         if (snapshot.connectionState != ConnectionState.done) {
@@ -114,102 +116,69 @@ class _QuizScreenState extends State<QuizScreen> {
           if (questions.isEmpty) {
             body = const Center(child: Text('퀴즈 데이터가 비어있어요.'));
           } else {
-            final q = questions[_currentIndex];
-            final progressText = '${_currentIndex + 1} / ${questions.length}';
-            final answered = _isAnswered(q);
-            final correct = _isCorrect(q);
-            final isLast = _currentIndex == questions.length - 1;
-
-            body = ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              children: [
-                Row(
+            body = ValueListenableBuilder<int>(
+              valueListenable: _bodyVersion,
+              builder: (context, _, __) {
+                final q = questions[_currentIndex];
+                final progressText = '${_currentIndex + 1} / ${questions.length}';
+                final answered = _isAnswered(q);
+                final correct = _isCorrect(q);
+                final isLast = _currentIndex == questions.length - 1;
+                return ListView(
+                  key: const PageStorageKey<String>('quiz_body'),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        progressText,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      ),
+                    _QuizProgressRow(
+                      progressText: progressText,
+                      answered: answered,
+                      isLast: isLast,
+                      onRetry: _retryCurrent,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 14),
+                    if (q.type == QuizQuestionType.multipleChoice) ...[
+                      _QuestionCard(question: q.question),
+                      const SizedBox(height: 14),
+                      ...List.generate(q.options!.length, (i) {
+                        final optionState = _optionStateFor(i, q);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: QuizOptionButton(
+                            text: q.options![i],
+                            state: optionState,
+                            onPressed: answered ? null : () => _selectOption(i, q),
+                          ),
+                        );
+                      }),
+                    ] else if (q.type == QuizQuestionType.fillBlank) ...[
+                      QuizFillBlankWidget(
+                        question: q.question,
+                        correctAnswer: q.correctAnswer ?? '',
+                        blankPositions: q.blankPositions,
+                        onSubmit: _submitFillBlank,
+                        answered: answered,
+                        userAnswer: _submittedAnswers[_currentIndex],
+                      ),
+                    ],
+                    const SizedBox(height: 6),
                     if (answered)
-                      TextButton(
-                        onPressed: _retryCurrent,
-                        child: const Text('다시풀기'),
-                      )
-                    else if (isLast)
-                      Text('마지막', style: theme.textTheme.labelLarge),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                // 문제 타입에 따라 다른 UI 표시
-                if (q.type == QuizQuestionType.multipleChoice) ...[
-                  Card(
-                    elevation: 0,
-                    color: colorScheme.surfaceContainerHighest,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        q.question,
-                        style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
+                      QuizResultCard(
+                        isCorrect: correct,
+                        questionType: q.type == QuizQuestionType.multipleChoice ? 'multipleChoice' : 'fillBlank',
+                        correctAnswer: q.type == QuizQuestionType.multipleChoice
+                            ? q.options![q.answerIndex!]
+                            : (q.correctAnswer ?? ''),
+                        explanation: q.explanation,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  ...List.generate(q.options!.length, (i) {
-                    final state = _optionStateFor(i, q);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: QuizOptionButton(
-                        text: q.options![i],
-                        state: state,
-                        onPressed: answered ? null : () => _selectOption(i, q),
-                      ),
-                    );
-                  }),
-                ] else if (q.type == QuizQuestionType.fillBlank) ...[
-                  QuizFillBlankWidget(
-                    question: q.question,
-                    correctAnswer: q.correctAnswer ?? '',
-                    blankPositions: q.blankPositions,
-                    onSubmit: _submitFillBlank,
-                    answered: answered,
-                    userAnswer: _submittedAnswers[_currentIndex],
-                  ),
-                ],
-                const SizedBox(height: 6),
-                if (answered)
-                  QuizResultCard(
-                    isCorrect: correct,
-                    questionType: q.type == QuizQuestionType.multipleChoice ? 'multipleChoice' : 'fillBlank',
-                    correctAnswer: q.type == QuizQuestionType.multipleChoice
-                        ? q.options![q.answerIndex!]
-                        : (q.correctAnswer ?? ''),
-                    explanation: q.explanation,
-                  ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: _currentIndex > 0 ? _prev : null,
-                      child: const Text('이전'),
-                    ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: !isLast ? () => _next(questions) : null,
-                      child: const Text('다음'),
+                    const SizedBox(height: 14),
+                    _QuizNavRow(
+                      hasPrev: _currentIndex > 0,
+                      hasNext: !isLast,
+                      onPrev: _prev,
+                      onNext: () => _next(questions),
                     ),
                   ],
-                ),
-              ],
+                );
+              },
             );
           }
         }
@@ -237,6 +206,103 @@ class _QuizScreenState extends State<QuizScreen> {
     if (optionIndex == q.answerIndex) return QuizOptionState.correct;
     if (selectedIndex == optionIndex && optionIndex != q.answerIndex) return QuizOptionState.wrong;
     return QuizOptionState.disabled;
+  }
+}
+
+class _QuizProgressRow extends StatelessWidget {
+  const _QuizProgressRow({
+    required this.progressText,
+    required this.answered,
+    required this.isLast,
+    required this.onRetry,
+  });
+
+  final String progressText;
+  final bool answered;
+  final bool isLast;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            progressText,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSecondaryContainer,
+            ),
+          ),
+        ),
+        const Spacer(),
+        if (answered)
+          TextButton(onPressed: onRetry, child: const Text('다시풀기'))
+        else if (isLast)
+          Text('마지막', style: theme.textTheme.labelLarge),
+      ],
+    );
+  }
+}
+
+class _QuestionCard extends StatelessWidget {
+  const _QuestionCard({required this.question});
+
+  final String question;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          question,
+          style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuizNavRow extends StatelessWidget {
+  const _QuizNavRow({
+    required this.hasPrev,
+    required this.hasNext,
+    required this.onPrev,
+    required this.onNext,
+  });
+
+  final bool hasPrev;
+  final bool hasNext;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        OutlinedButton(
+          onPressed: hasPrev ? onPrev : null,
+          child: const Text('이전'),
+        ),
+        const Spacer(),
+        FilledButton(
+          onPressed: hasNext ? onNext : null,
+          child: const Text('다음'),
+        ),
+      ],
+    );
   }
 }
 
