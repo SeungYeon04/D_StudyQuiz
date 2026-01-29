@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/quiz_asset_loader.dart';
 import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
+import '../widgets/quiz_fill_blank_widget.dart';
+import '../widgets/quiz_essay_widget.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -15,7 +17,8 @@ class _QuizScreenState extends State<QuizScreen> {
   final _loader = const QuizAssetLoader();
 
   int _currentIndex = 0;
-  final Map<int, int> _selectedByIndex = <int, int>{};
+  final Map<int, int> _selectedByIndex = <int, int>{}; // 객관식용
+  final Map<int, String> _textAnswers = <int, String>{}; // 빈칸 채우기/서술형용
 
   void _selectOption(int index, QuizQuestion q) {
     if (_selectedByIndex.containsKey(_currentIndex)) return;
@@ -41,7 +44,52 @@ class _QuizScreenState extends State<QuizScreen> {
   void _retryCurrent() {
     setState(() {
       _selectedByIndex.remove(_currentIndex);
+      _textAnswers.remove(_currentIndex);
     });
+  }
+
+  void _onTextAnswerChanged(String answer) {
+    setState(() {
+      _textAnswers[_currentIndex] = answer;
+    });
+  }
+
+  bool _isAnswered(QuizQuestion q) {
+    switch (q.type) {
+      case QuizQuestionType.multipleChoice:
+        return _selectedByIndex.containsKey(_currentIndex);
+      case QuizQuestionType.fillBlank:
+      case QuizQuestionType.essay:
+        return _textAnswers.containsKey(_currentIndex) &&
+            (_textAnswers[_currentIndex]?.trim().isNotEmpty ?? false);
+    }
+  }
+
+  bool _isCorrect(QuizQuestion q) {
+    if (!_isAnswered(q)) return false;
+    
+    switch (q.type) {
+      case QuizQuestionType.multipleChoice:
+        final selectedIndex = _selectedByIndex[_currentIndex];
+        return selectedIndex == q.answerIndex;
+      case QuizQuestionType.fillBlank:
+        final userAnswer = _textAnswers[_currentIndex]?.trim().toLowerCase() ?? '';
+        final correctAnswer = q.correctAnswer?.trim().toLowerCase() ?? '';
+        return userAnswer == correctAnswer;
+      case QuizQuestionType.essay:
+        // 서술형은 유사도 체크 (위젯에서 처리)
+        final userAnswer = _textAnswers[_currentIndex]?.trim() ?? '';
+        final correctAnswer = q.correctAnswer?.trim() ?? '';
+        if (userAnswer.isEmpty || correctAnswer.isEmpty) return false;
+        final user = userAnswer.toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+        final correct = correctAnswer.toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+        if (user == correct) return true;
+        final correctWords = correct.split(' ').where((w) => w.length > 2).toSet();
+        final userWords = user.split(' ').where((w) => w.length > 2).toSet();
+        if (correctWords.isEmpty) return false;
+        final matchCount = correctWords.where((w) => userWords.contains(w)).length;
+        return matchCount / correctWords.length >= 0.6;
+    }
   }
 
   @override
@@ -79,9 +127,8 @@ class _QuizScreenState extends State<QuizScreen> {
           } else {
             final q = questions[_currentIndex];
             final progressText = '${_currentIndex + 1} / ${questions.length}';
-            final selectedIndex = _selectedByIndex[_currentIndex];
-            final answered = selectedIndex != null;
-            final correct = answered && (selectedIndex == q.answerIndex);
+            final answered = _isAnswered(q);
+            final correct = _isCorrect(q);
             final isLast = _currentIndex == questions.length - 1;
 
             body = ListView(
@@ -113,30 +160,50 @@ class _QuizScreenState extends State<QuizScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Card(
-                  elevation: 0,
-                  color: colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      q.question,
-                      style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
+                // 문제 타입에 따라 다른 UI 표시
+                if (q.type == QuizQuestionType.multipleChoice) ...[
+                  Card(
+                    elevation: 0,
+                    color: colorScheme.surfaceContainerHighest,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        q.question,
+                        style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                ...List.generate(q.options.length, (i) {
-                  final state = _optionStateFor(i, q);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: QuizOptionButton(
-                      text: q.options[i],
-                      state: state,
-                      onPressed: answered ? null : () => _selectOption(i, q),
-                    ),
-                  );
-                }),
+                  const SizedBox(height: 14),
+                  ...List.generate(q.options!.length, (i) {
+                    final state = _optionStateFor(i, q);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: QuizOptionButton(
+                        text: q.options![i],
+                        state: state,
+                        onPressed: answered ? null : () => _selectOption(i, q),
+                      ),
+                    );
+                  }),
+                ] else if (q.type == QuizQuestionType.fillBlank) ...[
+                  QuizFillBlankWidget(
+                    question: q.question,
+                    correctAnswer: q.correctAnswer ?? '',
+                    blankPositions: q.blankPositions,
+                    onAnswerChanged: _onTextAnswerChanged,
+                    answered: answered,
+                    userAnswer: _textAnswers[_currentIndex],
+                  ),
+                ] else if (q.type == QuizQuestionType.essay) ...[
+                  QuizEssayWidget(
+                    question: q.question,
+                    correctAnswer: q.correctAnswer ?? '',
+                    onAnswerChanged: _onTextAnswerChanged,
+                    answered: answered,
+                    userAnswer: _textAnswers[_currentIndex],
+                  ),
+                ],
                 const SizedBox(height: 6),
                 if (answered)
                   Card(
@@ -155,7 +222,10 @@ class _QuizScreenState extends State<QuizScreen> {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text('정답: ${q.options[q.answerIndex]}'),
+                          if (q.type == QuizQuestionType.multipleChoice)
+                            Text('정답: ${q.options![q.answerIndex!]}')
+                          else
+                            Text('정답: ${q.correctAnswer ?? ""}'),
                           if ((q.explanation ?? '').trim().isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Text('해설: ${q.explanation}'),
@@ -196,7 +266,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   QuizOptionState _optionStateFor(int optionIndex, QuizQuestion q) {
     final selectedIndex = _selectedByIndex[_currentIndex];
-    final answered = selectedIndex != null;
+    final answered = _isAnswered(q);
 
     if (!answered) {
       if (selectedIndex == optionIndex) return QuizOptionState.selected;
