@@ -1,7 +1,6 @@
 enum QuizQuestionType {
   multipleChoice, // 객관식
   fillBlank,      // 빈칸 채우기
-  essay,          // 서술형
 }
 
 class QuizQuestion {
@@ -34,10 +33,6 @@ class QuizQuestion {
       case 'fill-blank':
         type = QuizQuestionType.fillBlank;
         break;
-      case 'essay':
-      case 'subjective':
-        type = QuizQuestionType.essay;
-        break;
       default:
         type = QuizQuestionType.multipleChoice;
     }
@@ -54,7 +49,7 @@ class QuizQuestion {
     }
 
     String? correctAnswer;
-    if (type == QuizQuestionType.fillBlank || type == QuizQuestionType.essay) {
+    if (type == QuizQuestionType.fillBlank) {
       correctAnswer = json['correctAnswer']?.toString();
     }
 

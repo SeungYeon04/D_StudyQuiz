@@ -4,7 +4,7 @@ import '../data/quiz_asset_loader.dart';
 import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
 import '../widgets/quiz_fill_blank_widget.dart';
-import '../widgets/quiz_essay_widget.dart';
+import '../widgets/quiz_result_card.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -18,7 +18,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   int _currentIndex = 0;
   final Map<int, int> _selectedByIndex = <int, int>{}; // 객관식용
-  final Map<int, String> _textAnswers = <int, String>{}; // 빈칸 채우기/서술형용
+  final Map<int, String> _submittedAnswers = <int, String>{}; // 빈칸 채우기 제출된 답변만
 
   void _selectOption(int index, QuizQuestion q) {
     if (_selectedByIndex.containsKey(_currentIndex)) return;
@@ -44,13 +44,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void _retryCurrent() {
     setState(() {
       _selectedByIndex.remove(_currentIndex);
-      _textAnswers.remove(_currentIndex);
-    });
-  }
-
-  void _onTextAnswerChanged(String answer) {
-    setState(() {
-      _textAnswers[_currentIndex] = answer;
+      _submittedAnswers.remove(_currentIndex);
     });
   }
 
@@ -59,9 +53,9 @@ class _QuizScreenState extends State<QuizScreen> {
       case QuizQuestionType.multipleChoice:
         return _selectedByIndex.containsKey(_currentIndex);
       case QuizQuestionType.fillBlank:
-      case QuizQuestionType.essay:
-        return _textAnswers.containsKey(_currentIndex) &&
-            (_textAnswers[_currentIndex]?.trim().isNotEmpty ?? false);
+        // 제출된 답변만 확인 (입력 중인 텍스트는 제외)
+        return _submittedAnswers.containsKey(_currentIndex) &&
+            (_submittedAnswers[_currentIndex]?.trim().isNotEmpty ?? false);
     }
   }
 
@@ -73,23 +67,18 @@ class _QuizScreenState extends State<QuizScreen> {
         final selectedIndex = _selectedByIndex[_currentIndex];
         return selectedIndex == q.answerIndex;
       case QuizQuestionType.fillBlank:
-        final userAnswer = _textAnswers[_currentIndex]?.trim().toLowerCase() ?? '';
+        // 제출된 답변으로 정답 확인
+        final userAnswer = _submittedAnswers[_currentIndex]?.trim().toLowerCase() ?? '';
         final correctAnswer = q.correctAnswer?.trim().toLowerCase() ?? '';
         return userAnswer == correctAnswer;
-      case QuizQuestionType.essay:
-        // 서술형은 유사도 체크 (위젯에서 처리)
-        final userAnswer = _textAnswers[_currentIndex]?.trim() ?? '';
-        final correctAnswer = q.correctAnswer?.trim() ?? '';
-        if (userAnswer.isEmpty || correctAnswer.isEmpty) return false;
-        final user = userAnswer.toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-        final correct = correctAnswer.toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-        if (user == correct) return true;
-        final correctWords = correct.split(' ').where((w) => w.length > 2).toSet();
-        final userWords = user.split(' ').where((w) => w.length > 2).toSet();
-        if (correctWords.isEmpty) return false;
-        final matchCount = correctWords.where((w) => userWords.contains(w)).length;
-        return matchCount / correctWords.length >= 0.6;
     }
+  }
+
+  void _submitFillBlank(String answer) {
+    if (answer.trim().isEmpty || _submittedAnswers.containsKey(_currentIndex)) return;
+    setState(() {
+      _submittedAnswers[_currentIndex] = answer.trim();
+    });
   }
 
   @override
@@ -191,48 +180,20 @@ class _QuizScreenState extends State<QuizScreen> {
                     question: q.question,
                     correctAnswer: q.correctAnswer ?? '',
                     blankPositions: q.blankPositions,
-                    onAnswerChanged: _onTextAnswerChanged,
+                    onSubmit: _submitFillBlank,
                     answered: answered,
-                    userAnswer: _textAnswers[_currentIndex],
-                  ),
-                ] else if (q.type == QuizQuestionType.essay) ...[
-                  QuizEssayWidget(
-                    question: q.question,
-                    correctAnswer: q.correctAnswer ?? '',
-                    onAnswerChanged: _onTextAnswerChanged,
-                    answered: answered,
-                    userAnswer: _textAnswers[_currentIndex],
+                    userAnswer: _submittedAnswers[_currentIndex],
                   ),
                 ],
                 const SizedBox(height: 6),
                 if (answered)
-                  Card(
-                    elevation: 0,
-                    color: correct ? Colors.green.shade50 : Colors.red.shade50,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            correct ? '정답!' : '오답!',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: correct ? Colors.green.shade800 : Colors.red.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          if (q.type == QuizQuestionType.multipleChoice)
-                            Text('정답: ${q.options![q.answerIndex!]}')
-                          else
-                            Text('정답: ${q.correctAnswer ?? ""}'),
-                          if ((q.explanation ?? '').trim().isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Text('해설: ${q.explanation}'),
-                          ],
-                        ],
-                      ),
-                    ),
+                  QuizResultCard(
+                    isCorrect: correct,
+                    questionType: q.type == QuizQuestionType.multipleChoice ? 'multipleChoice' : 'fillBlank',
+                    correctAnswer: q.type == QuizQuestionType.multipleChoice
+                        ? q.options![q.answerIndex!]
+                        : (q.correctAnswer ?? ''),
+                    explanation: q.explanation,
                   ),
                 const SizedBox(height: 14),
                 Row(
