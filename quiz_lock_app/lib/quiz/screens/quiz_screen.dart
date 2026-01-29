@@ -4,14 +4,14 @@ import '../data/quiz_asset_loader.dart';
 import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
 
-class TtmmBotQuizScreen extends StatefulWidget {
-  const TtmmBotQuizScreen({super.key});
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({super.key});
 
   @override
-  State<TtmmBotQuizScreen> createState() => _TtmmBotQuizScreenState();
+  State<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _TtmmBotQuizScreenState extends State<TtmmBotQuizScreen> {
+class _QuizScreenState extends State<QuizScreen> {
   final _loader = const QuizAssetLoader();
 
   int _currentIndex = 0;
