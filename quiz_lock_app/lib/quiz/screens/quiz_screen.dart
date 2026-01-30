@@ -46,6 +46,11 @@ class _QuizScreenState extends State<QuizScreen> {
     _bodyVersion.value++;
   }
 
+  String _normalizeAnswer(String s) {
+    // 소문자 + 모든 공백 제거해서 비교 (예: "시스템 소프트웨어" == "시스템소프트웨어")
+    return s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+  }
+
   bool _isAnswered(QuizQuestion q) {
     switch (q.type) {
       case QuizQuestionType.multipleChoice:
@@ -65,9 +70,11 @@ class _QuizScreenState extends State<QuizScreen> {
         final selectedIndex = _selectedByIndex[_currentIndex];
         return selectedIndex == q.answerIndex;
       case QuizQuestionType.fillBlank:
-        // 제출된 답변으로 정답 확인
-        final userAnswer = _submittedAnswers[_currentIndex]?.trim().toLowerCase() ?? '';
-        final correctAnswer = q.correctAnswer?.trim().toLowerCase() ?? '';
+        // 제출된 답변으로 정답 확인 (공백/대소문자 무시)
+        final rawUser = _submittedAnswers[_currentIndex] ?? '';
+        final rawCorrect = q.correctAnswer ?? '';
+        final userAnswer = _normalizeAnswer(rawUser);
+        final correctAnswer = _normalizeAnswer(rawCorrect);
         return userAnswer == correctAnswer;
     }
   }

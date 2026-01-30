@@ -102,8 +102,12 @@ class _QuizFillBlankWidgetState extends State<QuizFillBlankWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isCorrect = widget.answered && 
-        widget.userAnswer?.trim().toLowerCase() == widget.correctAnswer.trim().toLowerCase();
+    bool _isCorrectText(String? user, String correct) {
+      String normalize(String s) => s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+      return normalize(user ?? '') == normalize(correct);
+    }
+
+    final isCorrect = widget.answered && _isCorrectText(widget.userAnswer, widget.correctAnswer);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +133,11 @@ class _QuizFillBlankWidgetState extends State<QuizFillBlankWidget> {
                         controller: _controller,
                         focusNode: _focusNode,
                         enabled: !widget.answered,
+                        keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.done,
+                        enableSuggestions: true,
+                        autocorrect: true,
+                        enableInteractiveSelection: true,
                         onSubmitted: (_) => _handleSubmit(),
                         decoration: InputDecoration(
                           hintText: '정답을 입력하세요',
