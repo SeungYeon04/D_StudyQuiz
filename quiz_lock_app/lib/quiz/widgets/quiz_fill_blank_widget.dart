@@ -102,9 +102,10 @@ class _QuizFillBlankWidgetState extends State<QuizFillBlankWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    // 대소문자·띄어쓰기 구분 없이 비교
     bool _isCorrectText(String? user, String correct) {
-      String normalize(String s) => s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
-      return normalize(user ?? '') == normalize(correct);
+      String n(String s) => s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+      return n(user ?? '') == n(correct);
     }
 
     final isCorrect = widget.answered && _isCorrectText(widget.userAnswer, widget.correctAnswer);

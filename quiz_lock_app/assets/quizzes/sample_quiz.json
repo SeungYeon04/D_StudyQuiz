@@ -2,7 +2,7 @@
   "title": "샘플 퀴즈",
   "questions": [
     {
-      "id": "q1",
+      "id": "test",
       "type": "multipleChoice",
       "question": "Dart에서 리스트의 인덱스는 몇부터 시작할까?",
       "options": ["1", "0", "-1", "상황에 따라 다름"],
@@ -10,18 +10,18 @@
       "explanation": "Dart의 List는 0-based index를 사용해요."
     },
     {
-      "id": "q2",
-      "type": "fillBlank",
-      "question": "Flutter에서 UI를 그리는 메서드는 [    ]입니다.",
-      "correctAnswer": "build",
-      "explanation": "Widget은 build() 메서드에서 UI를 구성해요."
-    },
-    {
-      "id": "q3",
+      "id": "q1",
       "type": "fillBlank",
       "question": "운영체제의 핵심 역할 중 하나는 하드웨어와 사용자 간의 인터페이스를 제공하는 [     ]이다.",
       "correctAnswer": "시스템 소프트웨어",
       "explanation": "Widget은 build() 메서드에서 UI를 구성해요."
+    },
+    {
+      "id": "q2",
+      "type": "fillBlank",
+      "question": "프로세스 상태 중 CPU를 할당 받아 실제로 명령을 수행하는 상태를 [     ]이라고 한다.",
+      "correctAnswer": "Running",
+      "explanation": "Running 상태는 프로세스가 실제 CPU를 점유하고 있는 상태"
     }
   ]
 }

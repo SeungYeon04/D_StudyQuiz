@@ -46,9 +46,10 @@ class _QuizScreenState extends State<QuizScreen> {
     _bodyVersion.value++;
   }
 
+  /// 정답 비교용: 앞뒤 공백 제거, 소문자 통일, 중간 공백 제거 (대소문자·띄어쓰기 구분 없음)
   String _normalizeAnswer(String s) {
-    // 소문자 + 모든 공백 제거해서 비교 (예: "시스템 소프트웨어" == "시스템소프트웨어")
-    return s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    final t = s.trim();
+    return t.toLowerCase().replaceAll(RegExp(r'\s+'), '');
   }
 
   bool _isAnswered(QuizQuestion q) {
