@@ -5,6 +5,7 @@ import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
 import '../widgets/quiz_fill_blank_widget.dart';
 import '../widgets/quiz_result_card.dart';
+import 'jokbo_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -193,8 +194,43 @@ class _QuizScreenState extends State<QuizScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('퀴즈 앱'),
+            title: const SizedBox.shrink(),
+            centerTitle: false,
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          ),
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                  child: Text(
+                    '메뉴',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onInverseSurface,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.quiz_outlined),
+                  title: const Text('퀴즈'),
+                  onTap: () => Navigator.pop(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: const Text('족보 바로가기'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const JokboScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
           body: body,
         );
