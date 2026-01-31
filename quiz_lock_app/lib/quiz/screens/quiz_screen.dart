@@ -5,7 +5,7 @@ import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
 import '../widgets/quiz_fill_blank_widget.dart';
 import '../widgets/quiz_result_card.dart';
-import 'jokbo_screen.dart';
+import 'jokbo_list_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -225,7 +225,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const JokboScreen()),
+                      MaterialPageRoute(builder: (_) => const JokboListScreen()),
                     );
                   },
                 ),
