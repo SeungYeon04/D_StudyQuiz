@@ -23,8 +23,10 @@ SQL: DB에서 조회, 삽입, 수정, 삭제 등을 위한 표준언어
 SELECT ➡️ FROM ➡️ WHERE ➡️ GROUP BY ➡️ HAVING ➡️ ORDER BY 
 ```
   
-| 명령어 | 내용 |
+#### SQL 문법 종류 역할 구분 
+
+| SQL | 역할 |
 |------|------|
-| DDL(데이터 정의어) | 1. DB 구조(테이블, 뷰 등)를 생성•변경•삭제 할 때 사용(CREATE, ALTER, DROP)<br>2. 실행 즉시 DB 반영 COMMIT 되며 ROLLBACK 불가 |
-| INSERT | 새 데이터 행 추가 |
-| DELETE | 특정 행 삭제 |
+| DDL (데이터 정의어) | 1. DB 구조(테이블, 뷰 등)를 생성•변경•삭제 할 때 사용(CREATE, ALTER, DROP)<br>2. 실행 즉시 DB 반영 COMMIT 되며 ROLLBACK 불가 |
+| DML(데이터 조작어) | 1. 테이블에 저장된 데이터를 다룰 때 사용(SELECT, INSERT, UPDATE, DELETE)<br>2. 변경 내용은 커밋 전까지 임시 저장 상태 |
+| DCL (데이터 제어어) | 사용자 권한 부여 또는 회수할 때 사용(GRANT, REVOKE)<br>2. 자동 커밋 발생할 가능성 있음 |
