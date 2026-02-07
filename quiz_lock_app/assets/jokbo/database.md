@@ -22,3 +22,9 @@ SQL: DB에서 조회, 삽입, 수정, 삭제 등을 위한 표준언어
 절의 실행 순서 
 SELECT ➡️ FROM ➡️ WHERE ➡️ GROUP BY ➡️ HAVING ➡️ ORDER BY 
 ```
+  
+| 명령어 | 내용 |
+|------|------|
+| DDL(데이터 정의어) | 1. DB 구조(테이블, 뷰 등)를 생성•변경•삭제 할 때 사용(CREATE, ALTER, DROP)<br>2. 실행 즉시 DB 반영 COMMIT 되며 ROLLBACK 불가 |
+| INSERT | 새 데이터 행 추가 |
+| DELETE | 특정 행 삭제 |
