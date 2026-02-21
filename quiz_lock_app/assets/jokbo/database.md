@@ -30,3 +30,10 @@ SELECT ➡️ FROM ➡️ WHERE ➡️ GROUP BY ➡️ HAVING ➡️ ORDER BY
 | DDL (데이터 정의어) | 1. DB 구조(테이블, 뷰 등)를 생성•변경•삭제 할 때 사용(CREATE, ALTER, DROP)<br>2. 실행 즉시 DB 반영 COMMIT 되며 ROLLBACK 불가 |
 | DML(데이터 조작어) | 1. 테이블에 저장된 데이터를 다룰 때 사용(SELECT, INSERT, UPDATE, DELETE)<br>2. 변경 내용은 커밋 전까지 임시 저장 상태 |
 | DCL (데이터 제어어) | 사용자 권한 부여 또는 회수할 때 사용(GRANT, REVOKE)<br>2. 자동 커밋 발생할 가능성 있음 |
+| TCL (트랜잭션 제어어) | 트랜잭션 단위로 작업 처리 관리하고, 명령어는 COMMIT, ROLLBACK, CHECKPOINT |
+| COMMIT | 변경사항을 DB에 영구 저장 |  
+| ROLLBACK | 작업 도중 오류 시 이전 상태로 되돌림 | 
+| CHECKPOINT | 복구용 기준 시점 저장 | 
+
+
+
