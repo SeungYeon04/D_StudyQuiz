@@ -1,44 +1,102 @@
-## 공부용 퀴즈 앱
+## 첫 설치 (PC에 Flutter 없을 때, 한 번만)
 
-**공부 내용을 틈틈이 체크하면서 넘겨볼 수 있는 간단한 퀴즈 앱**입니다.  
-문제를 하나씩 풀면서 개념을 다시 확인하고, 바로 정답/오답과 해설을 볼 수 있습니다.  
+`flutter pub get` / `flutter run` **하기 전에** 아래를 **위에서부터 순서대로** 끝내세요.  
+`flutter`가 인식되지 않으면 이 단계를 아직 안 한 것입니다.
 
-### 주요 기능
+### Git
 
-- **문제 단위 학습**  
-  - 한 번에 한 문제씩만 보여 줍니다.  
-  - 보기 중 하나를 고르면 **즉시 정답/오답**과 **해설(있을 경우)**이 표시됩니다.  
-  - **다시풀기 버튼**으로 해당 문제만 리셋해서 다시 시도할 수 있습니다.  
-  
-- **이전 / 다음 네비게이션**  
-  - 화면 하단의 **이전 / 다음 버튼**으로 앞/뒤 문제로 이동합니다.  
-  - 첫 문제에서는 `이전`이 비활성화되고, 마지막 문제에서는 `다음`이 비활성화됩니다.  
-  
-- **문제 데이터 분리**
-  - 문제 내용은 `assets/quizzes/sample_quiz.json` 에 JSON 형식으로 관리합니다.  
-  - JSON에 문제를 추가/수정하면 앱 코드를 건드리지 않고도 퀴즈를 확장할 수 있습니다.  
-  
-### 앞으로 추가 예정
+Flutter SDK 받을 때 필요합니다.
 
-- **잠금 해제용 버튼 / 흐름**
-  - 나중에 특정 조건(예: 일정 개수 이상 정답, 시간 조건 등)을 만족하면  
-    **잠금 해제 버튼**을 통해 다음 단계로 넘어가는 기능을 붙일 예정입니다.  
-  
-이 저장소는 Flutter 기반의 학습용 퀴즈 앱 예제로,  
-문제 관리와 화면 구성을 분리한 구조를 연습하기에 적합합니다.  
+```powershell
+winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements
+```
 
-***
-  
-© 2026 Seungyeon Lee. All Rights Reserved.
+### Flutter SDK
 
-본 프로젝트의 모든 파일 및 리소스는 저작권 보호 대상입니다.
+`C:\src\flutter`에 stable 버전을 받습니다.
 
-- 제작자의 **사전 허락 없이 어떠한 형태의 상업적 이용도 금지**합니다.
-  (재배포, 판매, 유료 서비스 포함 모든 상업적 행위 불가)
+```powershell
+git clone https://github.com/flutter/flutter.git -b stable C:\src\flutter
+```
 
-- 개인 학습, 참고 목적의 이용은 가능하나,
-  프로젝트의 전체 또는 일부를 사용하여 2차 제작물을 배포할 경우
-  반드시 사전 협의가 필요합니다.
+### PATH
 
-- 출처 표기는 '사전 협의 후' 조건에 따라 결정됩니다.
-  (즉, 무단 출처 표기 없이 사용하는 것 또한 불가)
+터미널에서 `flutter` 명령이 인식되게 합니다. 아래 두 줄 다 실행하세요.
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\src\flutter\bin", "User")
+$env:Path += ";C:\src\flutter\bin"
+```
+
+**PATH 적용:** 위를 실행했는데도 `flutter`가 안 되면 **터미널을 닫았다가 새로 연 다음** `flutter doctor`를 치세요.  
+그래도 안 되면 새 터미널에서 `$env:Path += ";C:\src\flutter\bin"` 한 줄 더 실행.
+
+### 설치 확인
+
+Chrome만 쓸 거면 Visual Studio 없어도 됩니다.
+
+```powershell
+flutter doctor
+```
+
+### Windows 네이티브 앱만 쓸 때 (선택)
+
+`flutter run -d windows` 할 때만 필요합니다. **Docker와 무관**합니다.  
+`Unable to find suitable Visual Studio toolchain` 나오면 아래로 C++ 워크로드를 추가하세요.
+
+```powershell
+winget install -e --id Microsoft.VisualStudio.2022.BuildTools --accept-source-agreements --accept-package-agreements --override "--passive --wait --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+```
+
+설치 끝난 뒤 PC 재부팅 또는 터미널 재시작 → `flutter doctor`에서 Visual Studio가 √인지 확인.
+
+```powershell
+flutter doctor
+```
+
+---
+
+## 앱 실행 (매번)
+
+### `flutter`가 안 될 때 (지금 터미널에서만)
+
+설치는 했는데 **이 창**에서만 `flutter`가 안 되면, PATH 넣기 전에 연 터미널입니다. **아래 한 줄** 먼저 치세요.
+
+```powershell
+$env:Path += ";C:\src\flutter\bin"
+```
+
+또는 터미널 **전부 닫고 새로 연 뒤** `flutter --version` 확인.
+
+PATH 없이 한 번만 돌릴 때 (전체 경로):
+
+```powershell
+C:\src\flutter\bin\flutter.bat pub get
+C:\src\flutter\bin\flutter.bat run -d chrome
+```
+
+---
+
+### Chrome으로 실행 (권장, Docker·Visual Studio 불필요)
+
+예전에 별도 설치 없이 됐다면 대부분 이 방식입니다. 브라우저 창에 앱이 뜹니다.
+
+저장소 루트(`D_StudyQuiz`)에서:
+
+```powershell
+cd quiz_lock_app
+flutter pub get
+flutter run -d chrome
+```
+
+### Windows 앱으로 실행 (선택)
+
+PC에 뜨는 `.exe` 형태. **Visual Studio C++ 워크로드**가 있어야 합니다 (위 **Windows 네이티브** 참고).
+
+```powershell
+cd quiz_lock_app
+flutter pub get
+flutter run -d windows
+```
+
+`flutter pub get`은 `pubspec.yaml`이 바뀐 뒤에만 다시 치면 됩니다.
