@@ -56,6 +56,46 @@ flutter doctor
 
 ---
 
+> ## GitHub.io 웹 배포 (GitHub Pages)
+>
+> **배포 주소:** https://SeungYeon04.github.io/D_StudyQuiz/
+>
+> 소스 코드는 `main` 브랜치, 웹 빌드 결과는 **`gh-pages` 브랜치**에 올립니다.  
+> `build/web`을 `main`에 푸시하면 Flutter 소스가 덮어씌워지므로 **`gh-pages`만** 사용하세요.
+>
+> ### GitHub 설정 (최초 1회)
+>
+> [저장소 Settings → Pages](https://github.com/SeungYeon04/D_StudyQuiz/settings/pages)
+>
+> - **Source:** Deploy from a branch
+> - **Branch:** `gh-pages` / `/ (root)` → **Save**
+>
+> ### 빌드 & 배포 (코드 수정 후마다)
+>
+> 저장소 루트(`D_StudyQuiz`)에서:
+>
+> ```powershell
+> cd quiz_lock_app
+> flutter clean
+> flutter pub get
+> flutter build web --release --base-href /D_StudyQuiz/
+> cd build/web
+> git init
+> git remote add origin https://github.com/SeungYeon04/D_StudyQuiz.git
+> git checkout -b gh-pages
+> git add .
+> git commit -m "Deploy Flutter Web"
+> git push -u origin gh-pages --force
+> ```
+>
+> > **주의**
+> >
+> > - `--base-href`는 저장소 이름과 같아야 합니다 → `/D_StudyQuiz/` (빼면 흰 화면)
+> > - `build/web`에서 `git init` 하므로 소스 브랜치(`main`)와 **완전히 별개**입니다
+> > - 배포 반영까지 1~2분 걸릴 수 있습니다
+
+---
+
 ## 앱 실행 (매번)
 
 ### `flutter`가 안 될 때 (지금 터미널에서만)
