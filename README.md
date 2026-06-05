@@ -56,21 +56,54 @@ flutter doctor
 
 ---
 
-> ## GitHub.io 웹 배포 (GitHub Pages)
+> ## 웹 배포
 >
-> **배포 주소:** https://SeungYeon04.github.io/D_StudyQuiz/
+> **배포 주소**
 >
-> 소스 코드는 `main` 브랜치, 웹 빌드 결과는 **`gh-pages` 브랜치**에 올립니다.  
-> `build/web`을 `main`에 푸시하면 Flutter 소스가 덮어씌워지므로 **`gh-pages`만** 사용하세요.
+> - Netlify: https://classy-creponne-487057.netlify.app/
+> - GitHub Pages: https://SeungYeon04.github.io/D_StudyQuiz/
 >
-> ### GitHub 설정 (최초 1회)
+> ### Netlify (자동 배포, 권장)
+>
+> 저장소 루트의 [`netlify.toml`](netlify.toml)로 빌드·배포 설정이 들어 있습니다.  
+> Netlify는 사이트 **루트(`/`)** 에 배포하므로 `--base-href /D_StudyQuiz/` 같은 GitHub Pages용 옵션은 **쓰지 않습니다**.
+>
+> #### Netlify 연결 (최초 1회)
+>
+> 1. [Netlify](https://www.netlify.com) 가입·로그인
+> 2. **Add new site → Import an existing project**
+> 3. GitHub에서 `D_StudyQuiz` 저장소 선택
+> 4. Build settings는 `netlify.toml`이 자동 적용됨 → **Deploy site**
+>
+> 첫 빌드는 Flutter SDK 설치 때문에 **5~10분** 걸릴 수 있습니다.
+>
+> #### 자동 배포 (코드 수정 후)
+>
+> `main` 브랜치에 push하면 Netlify가 자동으로 다시 빌드·배포합니다.
+>
+> #### 수동 배포 (로컬에서만 올릴 때)
+>
+> ```powershell
+> cd quiz_lock_app
+> flutter clean
+> flutter pub get
+> flutter build web --release
+> ```
+>
+> Netlify 대시보드 → **Deploys → Drag and drop** 에서 `quiz_lock_app\build\web` 폴더를 올리면 됩니다.
+>
+> ### GitHub Pages (수동 배포)
+>
+> 소스 코드는 `main` 브랜치, 웹 빌드 결과는 **`gh-pages` 브랜치**에 올립니다.
+>
+> #### GitHub 설정 (최초 1회)
 >
 > [저장소 Settings → Pages](https://github.com/SeungYeon04/D_StudyQuiz/settings/pages)
 >
 > - **Source:** Deploy from a branch
 > - **Branch:** `gh-pages` / `/ (root)` → **Save**
 >
-> ### 빌드 & 배포 (코드 수정 후마다)
+> #### 빌드 & 배포 (코드 수정 후마다)
 >
 > 저장소 루트(`D_StudyQuiz`)에서:
 >
@@ -90,9 +123,9 @@ flutter doctor
 >
 > > **주의**
 > >
-> > - `--base-href`는 저장소 이름과 같아야 합니다 → `/D_StudyQuiz/` (빼면 흰 화면)
+> > - Netlify와 GitHub Pages는 **`base-href`가 다릅니다** — Netlify는 `/`, GitHub Pages는 `/D_StudyQuiz/`
+> > - GitHub Pages용 빌드를 Netlify에 올리면 **흰 화면**이 납니다
 > > - `build/web`에서 `git init` 하므로 소스 브랜치(`main`)와 **완전히 별개**입니다
-> > - 배포 반영까지 1~2분 걸릴 수 있습니다
 
 ---
 
