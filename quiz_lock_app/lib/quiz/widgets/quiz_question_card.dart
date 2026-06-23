@@ -17,6 +17,8 @@ class QuizQuestionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final questionStyle = theme.textTheme.titleLarge?.copyWith(height: 1.25);
+    final codeStyle = theme.textTheme.bodyMedium?.copyWith(height: 1.45);
     final hasCode = codeLines != null && codeLines!.isNotEmpty;
 
     return Card(
@@ -28,27 +30,20 @@ class QuizQuestionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              question,
-              style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
-            ),
+            Text(question, style: questionStyle),
             if (hasCode) ...[
               const SizedBox(height: 14),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
+              DecoratedBox(
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.outline.withOpacity(0.35),
-                  ),
+                  border: Border.all(color: colorScheme.outline.withValues(alpha: 0.35)),
                 ),
-                child: SelectableText(
-                  codeLines!.join('\n'),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontFamily: 'monospace',
-                    height: 1.45,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    codeLines!.join('\n'),
+                    style: codeStyle,
                   ),
                 ),
               ),

@@ -16,9 +16,15 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
+  static const _quizAssetPath = 'assets/quizzes/sample_quiz.json';
+
   final _loader = const QuizAssetLoader();
   /// 다시풀기/입력/다음/이전 시 setState 대신 이걸만 갱신 → 본문만 다시 그림, Scaffold·AppBar는 유지
   final ValueNotifier<int> _bodyVersion = ValueNotifier(0);
+
+  List<QuizQuestion>? _questions;
+  Object? _loadError;
+  bool _loading = true;
 
   int _currentIndex = 0;
   final Map<int, int> _selectedByIndex = <int, int>{};
@@ -89,6 +95,41 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadQuestions();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _loadQuestions();
+  }
+
+  Future<void> _loadQuestions() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+
+    try {
+      final questions = await _loader.loadQuestions(_quizAssetPath);
+      if (!mounted) return;
+      setState(() {
+        _questions = questions;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error;
+        _loading = false;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _bodyVersion.dispose();
     super.dispose();
@@ -96,150 +137,145 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<QuizQuestion>>(
-      future: _loader.loadQuestions('assets/quizzes/sample_quiz.json'),
-      builder: (context, snapshot) {
-        final theme = Theme.of(context);
+    final theme = Theme.of(context);
 
-        Widget body;
-        if (snapshot.connectionState != ConnectionState.done) {
-          body = const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          body = Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    Widget body;
+    if (_loading) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_loadError != null) {
+      body = Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('퀴즈 로딩 실패', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(_loadError.toString()),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _loadQuestions,
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      final questions = _questions ?? const <QuizQuestion>[];
+      if (questions.isEmpty) {
+        body = const Center(child: Text('퀴즈 데이터가 비어있어요.'));
+      } else {
+        body = ValueListenableBuilder<int>(
+          valueListenable: _bodyVersion,
+          builder: (context, _, __) {
+            final q = questions[_currentIndex];
+            final progressText = '${_currentIndex + 1} / ${questions.length}';
+            final answered = _isAnswered(q);
+            final correct = _isCorrect(q);
+            final isLast = _currentIndex == questions.length - 1;
+            return ListView(
+              key: ValueKey<String>(q.id),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               children: [
-                Text('퀴즈 로딩 실패', style: theme.textTheme.titleLarge),
-                const SizedBox(height: 8),
-                Text(snapshot.error.toString()),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => setState(() {}),
-                  child: const Text('다시 시도'),
+                _QuizProgressRow(
+                  progressText: progressText,
+                  answered: answered,
+                  isLast: isLast,
+                  onRetry: _retryCurrent,
+                ),
+                const SizedBox(height: 14),
+                if (q.type == QuizQuestionType.multipleChoice) ...[
+                  QuizQuestionCard(
+                    question: q.question,
+                    codeLines: q.codeLines,
+                  ),
+                  const SizedBox(height: 14),
+                  ...List.generate(q.options!.length, (i) {
+                    final optionState = _optionStateFor(i, q);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: QuizOptionButton(
+                        text: q.options![i],
+                        state: optionState,
+                        onPressed: answered ? null : () => _selectOption(i, q),
+                      ),
+                    );
+                  }),
+                ] else if (q.type == QuizQuestionType.fillBlank) ...[
+                  QuizFillBlankWidget(
+                    question: q.question,
+                    codeLines: q.codeLines,
+                    correctAnswer: q.correctAnswer ?? '',
+                    blankPositions: q.blankPositions,
+                    onSubmit: _submitFillBlank,
+                    answered: answered,
+                    userAnswer: _submittedAnswers[_currentIndex],
+                  ),
+                ],
+                const SizedBox(height: 6),
+                if (answered)
+                  QuizResultCard(
+                    isCorrect: correct,
+                    questionType: q.type == QuizQuestionType.multipleChoice ? 'multipleChoice' : 'fillBlank',
+                    correctAnswer: q.type == QuizQuestionType.multipleChoice
+                        ? q.options![q.answerIndex!]
+                        : (q.correctAnswer ?? ''),
+                    explanation: q.explanation,
+                  ),
+                const SizedBox(height: 14),
+                _QuizNavRow(
+                  hasPrev: _currentIndex > 0,
+                  hasNext: !isLast,
+                  onPrev: _prev,
+                  onNext: () => _next(questions),
                 ),
               ],
+            );
+          },
+        );
+      }
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const SizedBox.shrink(),
+        centerTitle: false,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+              child: Text(
+                '메뉴',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onInverseSurface,
+                ),
+              ),
             ),
-          );
-        } else {
-          final questions = snapshot.data ?? const <QuizQuestion>[];
-          if (questions.isEmpty) {
-            body = const Center(child: Text('퀴즈 데이터가 비어있어요.'));
-          } else {
-            body = ValueListenableBuilder<int>(
-              valueListenable: _bodyVersion,
-              builder: (context, _, __) {
-                final q = questions[_currentIndex];
-                final progressText = '${_currentIndex + 1} / ${questions.length}';
-                final answered = _isAnswered(q);
-                final correct = _isCorrect(q);
-                final isLast = _currentIndex == questions.length - 1;
-                return ListView(
-                  key: const PageStorageKey<String>('quiz_body'),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  children: [
-                    _QuizProgressRow(
-                      progressText: progressText,
-                      answered: answered,
-                      isLast: isLast,
-                      onRetry: _retryCurrent,
-                    ),
-                    const SizedBox(height: 14),
-                    if (q.type == QuizQuestionType.multipleChoice) ...[
-                      QuizQuestionCard(
-                        question: q.question,
-                        codeLines: q.codeLines,
-                      ),
-                      const SizedBox(height: 14),
-                      ...List.generate(q.options!.length, (i) {
-                        final optionState = _optionStateFor(i, q);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: QuizOptionButton(
-                            text: q.options![i],
-                            state: optionState,
-                            onPressed: answered ? null : () => _selectOption(i, q),
-                          ),
-                        );
-                      }),
-                    ] else if (q.type == QuizQuestionType.fillBlank) ...[
-                      QuizFillBlankWidget(
-                        question: q.question,
-                        codeLines: q.codeLines,
-                        correctAnswer: q.correctAnswer ?? '',
-                        blankPositions: q.blankPositions,
-                        onSubmit: _submitFillBlank,
-                        answered: answered,
-                        userAnswer: _submittedAnswers[_currentIndex],
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    if (answered)
-                      QuizResultCard(
-                        isCorrect: correct,
-                        questionType: q.type == QuizQuestionType.multipleChoice ? 'multipleChoice' : 'fillBlank',
-                        correctAnswer: q.type == QuizQuestionType.multipleChoice
-                            ? q.options![q.answerIndex!]
-                            : (q.correctAnswer ?? ''),
-                        explanation: q.explanation,
-                      ),
-                    const SizedBox(height: 14),
-                    _QuizNavRow(
-                      hasPrev: _currentIndex > 0,
-                      hasNext: !isLast,
-                      onPrev: _prev,
-                      onNext: () => _next(questions),
-                    ),
-                  ],
+            ListTile(
+              leading: const Icon(Icons.quiz_outlined),
+              title: const Text('퀴즈'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text('족보 바로가기'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const JokboListScreen()),
                 );
               },
-            );
-          }
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const SizedBox.shrink(),
-            centerTitle: false,
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                  ),
-                  child: Text(
-                    '메뉴',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onInverseSurface,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.quiz_outlined),
-                  title: const Text('퀴즈'),
-                  onTap: () => Navigator.pop(context),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.menu_book_outlined),
-                  title: const Text('족보 바로가기'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const JokboListScreen()),
-                    );
-                  },
-                ),
-              ],
             ),
-          ),
-          body: body,
-        );
-      },
+          ],
+        ),
+      ),
+      body: body,
     );
   }
 
