@@ -5,6 +5,12 @@
       "id": "test",
       "type": "multipleChoice",
       "question": "Dart에서 리스트의 인덱스는 몇부터 시작할까?",
+      "codeLines": [
+        "void main() {",
+        "  var nums = [10, 20, 30];",
+        "  print(nums[1]);",
+        "}"
+      ],
       "options": ["1", "0", "-1", "상황에 따라 다름"],
       "answerIndex": 1,
       "explanation": "Dart의 List는 0-based index를 사용해요."

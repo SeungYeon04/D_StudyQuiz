@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'quiz_question_card.dart';
+
 class QuizFillBlankWidget extends StatefulWidget {
   const QuizFillBlankWidget({
     super.key,
     required this.question,
     required this.correctAnswer,
     required this.onSubmit,
+    this.codeLines,
     this.blankPositions,
     this.answered = false,
     this.userAnswer,
   });
 
   final String question;
+  final List<String>? codeLines;
   final String correctAnswer;
   final List<int>? blankPositions;
   /// 제출 시에만 호출 (입력한 문자열 전달). 타이핑 중에는 호출 안 함.
@@ -113,84 +117,70 @@ class _QuizFillBlankWidgetState extends State<QuizFillBlankWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Card(
-          elevation: 0,
-          color: colorScheme.surfaceContainerHighest,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _buildQuestionWithBlanks(),
-                  style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        enabled: !widget.answered,
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.done,
-                        enableSuggestions: true,
-                        autocorrect: true,
-                        enableInteractiveSelection: true,
-                        onSubmitted: (_) => _handleSubmit(),
-                        decoration: InputDecoration(
-                          hintText: '정답을 입력하세요',
-                          filled: true,
-                          fillColor: widget.answered
-                              ? (isCorrect ? Colors.green.shade50 : Colors.red.shade50)
-                              : colorScheme.surface,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: widget.answered
-                                  ? (isCorrect ? Colors.green.shade600 : Colors.red.shade600)
-                                  : colorScheme.outline,
-                              width: widget.answered ? 2 : 1,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: widget.answered
-                                  ? (isCorrect ? Colors.green.shade600 : Colors.red.shade600)
-                                  : colorScheme.outline,
-                              width: widget.answered ? 2 : 1,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: colorScheme.primary,
-                              width: 2,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                        style: theme.textTheme.titleMedium,
+        QuizQuestionCard(
+          question: _buildQuestionWithBlanks(),
+          codeLines: widget.codeLines,
+          footer: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  enabled: !widget.answered,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.done,
+                  enableSuggestions: true,
+                  autocorrect: true,
+                  enableInteractiveSelection: true,
+                  onSubmitted: (_) => _handleSubmit(),
+                  decoration: InputDecoration(
+                    hintText: '정답을 입력하세요',
+                    filled: true,
+                    fillColor: widget.answered
+                        ? (isCorrect ? Colors.green.shade50 : Colors.red.shade50)
+                        : colorScheme.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: widget.answered
+                            ? (isCorrect ? Colors.green.shade600 : Colors.red.shade600)
+                            : colorScheme.outline,
+                        width: widget.answered ? 2 : 1,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: widget.answered ? null : _handleSubmit,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: widget.answered
+                            ? (isCorrect ? Colors.green.shade600 : Colors.red.shade600)
+                            : colorScheme.outline,
+                        width: widget.answered ? 2 : 1,
                       ),
-                      child: const Text('입력'),
                     ),
-                  ],
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: widget.answered ? null : _handleSubmit,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('입력'),
+              ),
+            ],
           ),
         ),
       ],

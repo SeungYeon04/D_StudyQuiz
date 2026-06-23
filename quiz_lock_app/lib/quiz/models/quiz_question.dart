@@ -8,6 +8,7 @@ class QuizQuestion {
     required this.id,
     required this.type,
     required this.question,
+    this.codeLines,
     this.options,
     this.answerIndex,
     this.correctAnswer, // 빈칸 채우기나 서술형의 정답
@@ -18,11 +19,14 @@ class QuizQuestion {
   final String id;
   final QuizQuestionType type;
   final String question;
+  final List<String>? codeLines;
   final List<String>? options; // 객관식용
   final int? answerIndex; // 객관식용
   final String? correctAnswer; // 빈칸 채우기/서술형용
   final String? explanation;
   final List<int>? blankPositions; // 빈칸 채우기용
+
+  String? get code => codeLines?.join('\n');
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     final typeStr = (json['type'] ?? 'multipleChoice').toString();
@@ -61,10 +65,17 @@ class QuizQuestion {
       }
     }
 
+    List<String>? codeLines;
+    final codeLinesDynamic = json['codeLines'];
+    if (codeLinesDynamic is List) {
+      codeLines = codeLinesDynamic.map((e) => e.toString()).toList(growable: false);
+    }
+
     return QuizQuestion(
       id: (json['id'] ?? '').toString(),
       type: type,
       question: (json['question'] ?? '').toString(),
+      codeLines: codeLines,
       options: options,
       answerIndex: answerIndex,
       correctAnswer: correctAnswer,

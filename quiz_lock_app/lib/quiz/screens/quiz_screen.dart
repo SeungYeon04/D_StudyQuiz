@@ -4,6 +4,7 @@ import '../data/quiz_asset_loader.dart';
 import '../models/quiz_question.dart';
 import '../widgets/quiz_option_button.dart';
 import '../widgets/quiz_fill_blank_widget.dart';
+import '../widgets/quiz_question_card.dart';
 import '../widgets/quiz_result_card.dart';
 import 'jokbo_list_screen.dart';
 
@@ -145,7 +146,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                     const SizedBox(height: 14),
                     if (q.type == QuizQuestionType.multipleChoice) ...[
-                      _QuestionCard(question: q.question),
+                      QuizQuestionCard(
+                        question: q.question,
+                        codeLines: q.codeLines,
+                      ),
                       const SizedBox(height: 14),
                       ...List.generate(q.options!.length, (i) {
                         final optionState = _optionStateFor(i, q);
@@ -161,6 +165,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ] else if (q.type == QuizQuestionType.fillBlank) ...[
                       QuizFillBlankWidget(
                         question: q.question,
+                        codeLines: q.codeLines,
                         correctAnswer: q.correctAnswer ?? '',
                         blankPositions: q.blankPositions,
                         onSubmit: _submitFillBlank,
@@ -291,30 +296,6 @@ class _QuizProgressRow extends StatelessWidget {
         else if (isLast)
           Text('마지막', style: theme.textTheme.labelLarge),
       ],
-    );
-  }
-}
-
-class _QuestionCard extends StatelessWidget {
-  const _QuestionCard({required this.question});
-
-  final String question;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Card(
-      elevation: 0,
-      color: colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          question,
-          style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
-        ),
-      ),
     );
   }
 }
