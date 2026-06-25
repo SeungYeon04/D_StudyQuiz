@@ -9,11 +9,11 @@ class JokboEntry {
 class JokboCatalog {
   JokboCatalog._();
 
-  static const sectionTitle = '정보처리산업기사';
+  static const sectionTitle = '자격증 공부 족보';
 
   static const List<JokboEntry> entries = [
-    JokboEntry(title: '데이터베이스구축', assetPath: 'assets/jokbo/database.md'),
-    JokboEntry(title: '운영체제 네트워크 보안', assetPath: 'assets/jokbo/network.md'),
+    JokboEntry(title: '정보처리기사', assetPath: 'assets/jokbo/database.md'),
+    JokboEntry(title: 'JLPT 일본어', assetPath: 'assets/jokbo/network.md'),
   ];
 
   static List<String> get titles =>
