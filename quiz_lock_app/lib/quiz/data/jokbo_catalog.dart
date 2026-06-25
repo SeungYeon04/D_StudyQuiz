@@ -12,8 +12,8 @@ class JokboCatalog {
   static const sectionTitle = '자격증 공부 족보';
 
   static const List<JokboEntry> entries = [
-    JokboEntry(title: '정보처리기사', assetPath: 'assets/jokbo/database.md'),
-    JokboEntry(title: 'JLPT 일본어', assetPath: 'assets/jokbo/network.md'),
+    JokboEntry(title: '정보처리기사', assetPath: 'assets/jokbo/Information.md'),
+    JokboEntry(title: 'JLPT 일본어', assetPath: 'assets/jokbo/JLPT.md'),
   ];
 
   static List<String> get titles =>
