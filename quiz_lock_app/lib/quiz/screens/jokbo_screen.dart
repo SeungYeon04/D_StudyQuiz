@@ -11,31 +11,64 @@ class JokboScreen extends StatelessWidget {
   final String subject;
 
   String? get _assetPath => JokboCatalog.assetPathFor(subject);
+
   MarkdownStyleSheet _jokboStyleSheet(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final onSurface = colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.72);
+    final border = colorScheme.outlineVariant.withValues(alpha: 0.55);
 
     return MarkdownStyleSheet(
+      p: theme.textTheme.bodyMedium?.copyWith(
+        color: onSurface.withValues(alpha: 0.92),
+        height: 1.65,
+      ),
+      pPadding: const EdgeInsets.only(bottom: 10),
+      strong: theme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: onSurface,
+      ),
       h3: theme.textTheme.titleLarge?.copyWith(
         fontWeight: FontWeight.bold,
-        color: onSurface,
+        color: colorScheme.primary,
         height: 1.3,
       ),
-      h3Padding: const EdgeInsets.only(top: 28, bottom: 10),
+      h3Padding: const EdgeInsets.only(top: 8, bottom: 12),
       h4: theme.textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w600,
-        color: onSurface.withValues(alpha: 0.88),
+        color: onSurface,
         height: 1.35,
       ),
-      h4Padding: const EdgeInsets.only(top: 18, bottom: 6),
-      tableHead: TextStyle(
+      h4Padding: const EdgeInsets.only(top: 22, bottom: 8),
+      listBullet: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.primary),
+      listIndent: 22,
+      listBulletPadding: const EdgeInsets.only(right: 6),
+      blockquote: theme.textTheme.bodyMedium?.copyWith(
+        color: muted,
+        height: 1.5,
+      ),
+      blockquotePadding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      blockquoteDecoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
+      ),
+      tableHead: theme.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.bold,
         color: onSurface,
       ),
-      tableBody: TextStyle(color: onSurface),
-      tableBorder: TableBorder.all(
-        color: colorScheme.outline.withValues(alpha: 0.5),
+      tableBody: theme.textTheme.bodyMedium?.copyWith(
+        color: onSurface.withValues(alpha: 0.9),
+        height: 1.45,
+      ),
+      tableCellsPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      tableBorder: TableBorder.all(color: border, width: 1),
+      tableColumnWidth: const FlexColumnWidth(),
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: border, width: 1),
+        ),
       ),
     );
   }
@@ -58,37 +91,37 @@ class JokboScreen extends StatelessWidget {
               ),
             )
           : FutureBuilder<String>(
-        future: rootBundle.loadString(_assetPath!),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || !snapshot.hasData) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  snapshot.hasError
-                      ? '로드 실패: ${snapshot.error}'
-                      : '내용이 없습니다.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-            );
-          }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: MarkdownBody(
-                data: snapshot.data!,
-                selectable: true,
-                styleSheet: _jokboStyleSheet(context),
-              ),
+              future: rootBundle.loadString(_assetPath!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        snapshot.hasError
+                            ? '로드 실패: ${snapshot.error}'
+                            : '내용이 없습니다.',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  );
+                }
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: MarkdownBody(
+                      data: snapshot.data!,
+                      selectable: true,
+                      styleSheet: _jokboStyleSheet(context),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
