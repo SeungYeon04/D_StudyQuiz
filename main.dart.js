@@ -290,11 +290,11 @@ avS(a){var s,r,q,p=new Float32Array(16)
 for(s=0;s<4;++s)for(r=s*4,q=0;q<4;++q)p[q*4+s]=a[r+q]
 return p},
 avT(a){var s,r,q,p=new Float32Array(9)
-for(s=a.length,r=0;r<9;++r){q=B.nP[r]
+for(s=a.length,r=0;r<9;++r){q=B.nO[r]
 if(q<s)p[r]=a[q]
 else p[r]=0}return p},
 aS4(a){var s,r,q,p=new Float32Array(9)
-for(s=a.length,r=0;r<9;++r){q=B.nP[r]
+for(s=a.length,r=0;r<9;++r){q=B.nO[r]
 if(q<s)p[r]=a[q]
 else p[r]=0}return p},
 aDr(a){var s=new Float32Array(2)
@@ -26000,7 +26000,7 @@ j=i}s.Z_(new A.uN(p,B.K0,o,j,h))
 s.JV()},
 LB:function LB(a){this.a=a},
 ayD(a){var s,r
-for(s=0;s<2;++s){r=B.nO[s]
+for(s=0;s<2;++s){r=B.nP[s]
 if(r.a===a)return r.b}return null},
 m6:function m6(a,b){this.a=a
 this.b=b},
@@ -87211,7 +87211,7 @@ N(a){var s,r=null,q=A.U(a),p=q.ax,o=p.y2
 o=A.at_(o==null?p.c:o,r,B.TW)
 s=q.ok.f
 s=A.b([new A.bP(B.DV,A.cP("\uc790\uaca9\uc99d \uacf5\ubd80 \uc871\ubcf4",r,r,r,s==null?r:s.Ga(p.k3,B.bR),r,r),r)],t.p)
-B.b.P(s,new A.X(B.nO,new A.a57(p,q,a),t.gE))
+B.b.P(s,new A.X(B.nP,new A.a57(p,q,a),t.gE))
 return A.aul(o,A.atX(s,r,B.Ee),r)}}
 A.a57.prototype={
 $1(a){var s,r,q=null,p=A.eY(12),o=this.a,n=o.to
@@ -91490,11 +91490,11 @@ B.GT=s([0.41233895,0.35762064,0.18051042],t.n)
 B.GD=s([0.2126,0.7152,0.0722],t.n)
 B.HS=s([0.01932141,0.11916382,0.95034478],t.n)
 B.cG=s([B.GT,B.GD,B.HS],t.zg)
-B.Fs=new A.m6("\uc815\ubcf4\ucc98\ub9ac\uae30\uc0ac","assets/jokbo/Information.md")
-B.Ft=new A.m6("JLPT \uc77c\ubcf8\uc5b4","assets/jokbo/JLPT.md")
-B.nO=s([B.Fs,B.Ft],A.ag("v<m6>"))
-B.nP=s([0,4,12,1,5,13,3,7,15],t.t)
+B.nO=s([0,4,12,1,5,13,3,7,15],t.t)
 B.Gm=s([65533],t.t)
+B.Fs=new A.m6("\uc815\ubcf4\ucc98\ub9ac\uae30\uc0ac \uc2e4\uae30","assets/jokbo/Information.md")
+B.Ft=new A.m6("JLPT \uc77c\ubcf8\uc5b4","assets/jokbo/JLPT.md")
+B.nP=s([B.Fs,B.Ft],A.ag("v<m6>"))
 B.VY=new A.fN(0,1)
 B.W2=new A.fN(0.5,1)
 B.W5=new A.fN(0.5375,0.75)
