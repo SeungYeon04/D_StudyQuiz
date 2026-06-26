@@ -54,6 +54,17 @@ class JokboScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: border),
       ),
+      code: theme.textTheme.bodyMedium?.copyWith(
+        color: const Color(0xFFE8E8E8),
+        height: 1.55,
+        letterSpacing: 0.1,
+      ),
+      codeblockPadding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      codeblockDecoration: BoxDecoration(
+        color: const Color(0xFF2E2E2E),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF444444)),
+      ),
       tableHead: theme.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.bold,
         color: onSurface,
