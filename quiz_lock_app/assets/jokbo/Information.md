@@ -305,6 +305,8 @@ BCNF + 다치 종속(Multi-Valued Dependency) 제거
   
 ### 4. 보안 
 
+#### 1. 보안의 3대 요소 (CIA)  
+
 
 
 
